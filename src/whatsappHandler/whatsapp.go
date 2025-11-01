@@ -15,22 +15,27 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
-type MyClient struct{
-	WAClient *whatsmeow.Client
+type MyClient struct {
+	WAClient       *whatsmeow.Client
 	eventHandlerId uint32
 }
 
-func eventHandler(evt interface{}) {
+func (mycli *MyClient) register() {
+	mycli.eventHandlerId = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
+}
+
+func (mycli *MyClient) myEventHandler(evt interface{}) {
 	switch v := evt.(type) {
 	case *events.Message:
 		fmt.Println("Received a message!", v.Message.GetConversation())
 	}
 }
 
+func (mycli *MyClient) logout() {
+	mycli.WAClient.Disconnect()
+}
+
 func Connect() {
-	// |------------------------------------------------------------------------------------------------------|
-	// | NOTE: You must also import the appropriate DB connector, e.g. github.com/mattn/go-sqlite3 for SQLite |
-	// |------------------------------------------------------------------------------------------------------|
 
 	dbLog := waLog.Stdout("Database", "DEBUG", true)
 	ctx := context.Background()
@@ -44,15 +49,17 @@ func Connect() {
 	if err != nil {
 		panic(err)
 	}
-	clientLog := waLog.Stdout("Client", "DEBUG", true)
-	client := whatsmeow.NewClient(deviceStore, clientLog)
-	client.AddEventHandler(eventHandler)
-	client.EnableAutoReconnect = true
 
-	if client.Store.ID == nil {
+	clientLog := waLog.Stdout("Client", "DEBUG", true)
+
+	var client MyClient
+	client.WAClient = whatsmeow.NewClient(deviceStore, clientLog)
+	client.WAClient.EnableAutoReconnect = true
+
+	if client.WAClient.Store.ID == nil {
 		// No ID stored, new login
-		qrChan, _ := client.GetQRChannel(context.Background())
-		err = client.Connect()
+		qrChan, _ := client.WAClient.GetQRChannel(context.Background())
+		err = client.WAClient.Connect()
 		if err != nil {
 			panic(err)
 		}
@@ -68,7 +75,7 @@ func Connect() {
 		}
 	} else {
 		// Already logged in, just connect
-		err = client.Connect()
+		err = client.WAClient.Connect()
 		if err != nil {
 			panic(err)
 		}
@@ -79,5 +86,5 @@ func Connect() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	<-c
 
-	client.Disconnect()
+	client.logout()
 }
