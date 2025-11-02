@@ -28,24 +28,24 @@ func (mycli *MyClient) myEventHandler(evt interface{}) {
 	switch v := evt.(type) {
 	case *events.Message:
 		fmt.Println("Received a message!", v.Message.GetConversation())
-		file, err := os.Create("./jid.txt")
-		if err != nil {
-			fmt.Println("Error creating file")
-		}
-
-		defer func() {
-			if closeErr := file.Close(); closeErr != nil {
-				fmt.Printf("Error closing file: %v\n", closeErr)
-			}
-		}()
-
-		_, err = file.WriteString(v.Info.Chat.String())
-		if err != nil {
-			fmt.Printf("Error writing to file: %v\n", err)
-			return
-		}
-
-		fmt.Printf("Successfully wrote to %s\n", "./jid.txt")
+		// file, err := os.Create("./jid.txt")
+		// if err != nil {
+		// 	fmt.Println("Error creating file")
+		// }
+		//
+		// defer func() {
+		// 	if closeErr := file.Close(); closeErr != nil {
+		// 		fmt.Printf("Error closing file: %v\n", closeErr)
+		// 	}
+		// }()
+		//
+		// _, err = file.WriteString(v.Info.Chat.String())
+		// if err != nil {
+		// 	fmt.Printf("Error writing to file: %v\n", err)
+		// 	return
+		// }
+		//
+		// fmt.Printf("Successfully wrote to %s\n", "./jid.txt")
 		// mycli.WAClient.SendMessage(context.Background(), v.Info.Chat, utils.TextToWaMessage("hi"))
 	}
 }
@@ -60,7 +60,7 @@ func (mycli *MyClient) SendMessage(msg string, jid types.JID) {
 
 func Connect(client *MyClient) {
 
-	dbLog := waLog.Stdout("Database", "DEBUG", true)
+	dbLog := waLog.Stdout("Database", "ERROR", true)
 	ctx := context.Background()
 	println("Conneting to db")
 	container, err := sqlstore.New(ctx, "sqlite3", "./whatsapp.db?_foreign_keys=on", dbLog)
@@ -73,7 +73,7 @@ func Connect(client *MyClient) {
 		panic(err)
 	}
 
-	clientLog := waLog.Stdout("Client", "DEBUG", true)
+	clientLog := waLog.Stdout("Client", "ERROR", true)
 
 	client.WAClient = whatsmeow.NewClient(deviceStore, clientLog)
 	client.WAClient.EnableAutoReconnect = true
