@@ -28,6 +28,7 @@ func (mycli *MyClient) myEventHandler(evt interface{}) {
 	switch v := evt.(type) {
 	case *events.Message:
 		fmt.Println("Received a message!", v.Message.GetConversation())
+		fmt.Println("From: ", v.Info.Sender.User)
 		// file, err := os.Create("./jid.txt")
 		// if err != nil {
 		// 	fmt.Println("Error creating file")

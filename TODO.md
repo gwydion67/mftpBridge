@@ -1,9 +1,9 @@
 # Todo
 
-- [ ] initial implementation
-  - [ ] simple http server
+- [o] initial implementation
+  - [X] simple http server
   - [ ] support only text messages
-  - [ ] always running whatsapp client
+  - [X] always running whatsapp client
   - [ ] dockerise the whole thing
   - [ ] test
 
