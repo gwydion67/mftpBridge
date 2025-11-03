@@ -4,15 +4,18 @@ import (
 	"context"
 	"fmt"
 	"mftpBridge/src/utils"
+	"net/http"
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mdp/qrterminal/v3"
 	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	waLog "go.mau.fi/whatsmeow/util/log"
+	"google.golang.org/protobuf/proto"
 )
 
 type MyClient struct {
@@ -59,6 +62,32 @@ func (mycli *MyClient) SendMessage(msg string, jid types.JID) {
 	mycli.WAClient.SendMessage(context.Background(), jid, utils.TextToWaMessage(msg))
 }
 
+func (client *MyClient) SendDocument(jid types.JID, data []byte, fileName string, caption string) (whatsmeow.SendResponse, error) {
+	uploaded, err := client.WAClient.Upload(context.Background(), data, whatsmeow.MediaDocument)
+	if err != nil {
+		fmt.Printf("Failed to upload file: %v\n", err)
+		return whatsmeow.SendResponse{}, err
+	}
+	resultDoc := &waE2E.Message{
+		DocumentMessage: &waE2E.DocumentMessage{
+			URL:           proto.String(uploaded.URL),
+			DirectPath:    proto.String(uploaded.DirectPath),
+			MediaKey:      uploaded.MediaKey,
+			FileName:      proto.String(fileName),
+			Caption:       proto.String(caption),
+			Mimetype:      proto.String(http.DetectContentType(data)),
+			FileEncSHA256: uploaded.FileEncSHA256,
+			FileSHA256:    uploaded.FileSHA256,
+			FileLength:    proto.Uint64(uint64(len(data))),
+		},
+	}
+	ok, er := client.WAClient.SendMessage(context.Background(), jid, resultDoc)
+	if er != nil {
+		return whatsmeow.SendResponse{}, er
+	}
+	return ok, nil
+}
+
 func Connect(client *MyClient) {
 
 	dbLog := waLog.Stdout("Database", "ERROR", true)
@@ -71,7 +100,7 @@ func Connect(client *MyClient) {
 		fmt.Println("Warning: DB_DIRECTORY environment variable is not set. Using current directoy")
 	}
 
-	container, err := sqlstore.New(ctx, "sqlite3", dataDB + "/whatsapp.db?_foreign_keys=on", dbLog)
+	container, err := sqlstore.New(ctx, "sqlite3", dataDB+"/whatsapp.db?_foreign_keys=on", dbLog)
 	if err != nil {
 		panic(err)
 	}
