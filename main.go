@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/joho/godotenv"
-	"go.mau.fi/whatsmeow/types"
+	// "go.mau.fi/whatsmeow/types"
 	"mftpBridge/src/backend"
 
 	"mftpBridge/src/whatsappHandler"
@@ -27,12 +27,12 @@ func main() {
 
 	whatsapphandler.Connect(&client)
 
-	jid, err := types.ParseJID(groupJid)
-	if err != nil {
-		print("failed to parse jid ")
-	} else {
-		client.SendMessage("hello", jid)
-	}
+	// jid, err := types.ParseJID(groupJid)
+	// if err != nil {
+	// 	print("failed to parse jid ")
+	// } else {
+	// 	client.SendMessage("hello", jid)
+	// }
 
 	// after inital connection to whatsapp start the backend server and pass the client
 	// use this client to manage the start/stop of the whatsapp server

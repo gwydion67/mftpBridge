@@ -81,6 +81,7 @@ func (h *Handler) handleSendText(w http.ResponseWriter, req *http.Request) {
 func (h *Handler) handleSendDoc(w http.ResponseWriter, req *http.Request) {
 
 	contentType := req.Header.Get("Content-Type")
+
 	if !strings.HasPrefix(contentType, "multipart/form-data") {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
@@ -89,12 +90,28 @@ func (h *Handler) handleSendDoc(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	req.ParseMultipartForm(10 << 20)
-
-	file, handler, err := req.FormFile("attachment")
-	message := req.FormValue("message")
+	err := req.ParseMultipartForm(10 << 20)
 	if err != nil {
-		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "Failed",
+			"Error":  fmt.Sprintf("Error parsing form: %v", err),
+		})
+		return
+	}
+
+	message := req.FormValue("message")
+	println("Received message with form : ", message)
+	file, handler, err := req.FormFile("attachment")
+	if err != nil {
+		println("Error receiving file:", err.Error()) // Use err.Error()
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "Failed",
+			"Error":  fmt.Sprintf("Error retrieving file: %v", err),
+		})
 		return
 	}
 	defer file.Close()
