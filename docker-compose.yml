@@ -1,0 +1,10 @@
+version: "1.0"
+services:
+  mftpbridge:
+    build: .
+    ports:
+      - "8090:8090"
+    env_file:
+      - .env
+    volumes:
+      - ${DB_DIRECTORY}:/db

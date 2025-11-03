@@ -64,7 +64,14 @@ func Connect(client *MyClient) {
 	dbLog := waLog.Stdout("Database", "ERROR", true)
 	ctx := context.Background()
 	println("Conneting to db")
-	container, err := sqlstore.New(ctx, "sqlite3", "./whatsapp.db?_foreign_keys=on", dbLog)
+
+	dataDB := os.Getenv("DB_DIRECTORY")
+	if dataDB == "" {
+		dataDB = "."
+		fmt.Println("Warning: DB_DIRECTORY environment variable is not set. Using current directoy")
+	}
+
+	container, err := sqlstore.New(ctx, "sqlite3", dataDB + "/whatsapp.db?_foreign_keys=on", dbLog)
 	if err != nil {
 		panic(err)
 	}
