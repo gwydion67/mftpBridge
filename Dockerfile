@@ -13,7 +13,7 @@ COPY . .
 
 RUN go build -o main .
 
-EXPOSE 80090
+EXPOSE 8090
 
 CMD [ "/app/main" ]
 
