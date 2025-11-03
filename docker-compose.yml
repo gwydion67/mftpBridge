@@ -1,6 +1,7 @@
 services:
   mftpbridge:
     build: .
+    image: mftpbridge
     restart: unless-stopped
     ports:
       - "8090:8090"
